@@ -1,0 +1,353 @@
+{
+  "info": {
+    "_postman_id": "kanban-api-collection-v1",
+    "name": "Kanban API - Grupo F",
+    "description": "Colección completa de pruebas para el backend de gestión de proyectos Kanban con rutas anidadas RESTful",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "boardId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "column1Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "column2Id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "ticketId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Tableros (Boards)",
+      "item": [
+        {
+          "name": "POST - Crear Tablero",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('boardId', json._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Proyecto Kanban Principal\",\n  \"description\": \"Tablero de seguimiento del sprint\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards"]
+            }
+          }
+        },
+        {
+          "name": "GET - Listar Tableros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards"]
+            }
+          }
+        },
+        {
+          "name": "GET - Obtener Tablero con Columnas y Tickets Poblados",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Actualizar Tablero",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Proyecto Kanban - Renombrado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar Tablero (Cascada)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Columnas (Columns)",
+      "item": [
+        {
+          "name": "POST - Crear Columna 1 (Backlog)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('column1Id', json._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Backlog\",\n  \"order\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns"]
+            }
+          }
+        },
+        {
+          "name": "POST - Crear Columna 2 (En Progreso)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('column2Id', json._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"En Progreso\",\n  \"order\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns"]
+            }
+          }
+        },
+        {
+          "name": "GET - Listar Columnas del Tablero",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns"]
+            }
+          }
+        },
+        {
+          "name": "GET - Obtener Columna por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column1Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column1Id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar Columna (Cascada)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column1Id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column1Id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Tickets (Tickets)",
+      "item": [
+        {
+          "name": "POST - Crear Ticket en Columna 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    var json = pm.response.json();",
+                  "    pm.collectionVariables.set('ticketId', json._id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Implementar autenticación\",\n  \"description\": \"Configurar JWT en endpoints privados\",\n  \"priority\": \"high\",\n  \"order\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column1Id}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column1Id}}", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "GET - Listar Tickets de Columna",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column1Id}}/tickets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column1Id}}", "tickets"]
+            }
+          }
+        },
+        {
+          "name": "PATCH - Mover Ticket a Columna 2 (targetColumnId)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"targetColumnId\": \"{{column2Id}}\",\n  \"priority\": \"medium\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column1Id}}/tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column1Id}}", "tickets", "{{ticketId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE - Eliminar Ticket",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/{{boardId}}/columns/{{column2Id}}/tickets/{{ticketId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "{{boardId}}", "columns", "{{column2Id}}", "tickets", "{{ticketId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Validaciones y Errores (Edge Cases)",
+      "item": [
+        {
+          "name": "Error 400 - ObjectId Malformado",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/id-invalido-123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "id-invalido-123"]
+            }
+          }
+        },
+        {
+          "name": "Error 404 - Recurso Inexistente",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/boards/507f1f77bcf86cd799439011",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards", "507f1f77bcf86cd799439011"]
+            }
+          }
+        },
+        {
+          "name": "Error 400 - Título Vacío al Crear Tablero",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"   \"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/boards",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "boards"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
