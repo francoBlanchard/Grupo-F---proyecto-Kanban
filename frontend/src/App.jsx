@@ -1,194 +1,254 @@
+import { useState } from 'react'
 import { ThemeProvider, useTheme } from './hooks/useTheme'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider, useToast } from './hooks/useToast'
+import {
+  Navbar,
+  Button,
+  Badge,
+  Input,
+  Textarea,
+  Select,
+  Modal,
+  ConfirmDialog,
+  Spinner
+} from './components'
 import { 
-  Sun, 
-  Moon, 
-  Terminal, 
   CheckCircle2, 
-  LogIn, 
-  LogOut, 
-  Bell, 
+  Trash2, 
+  Plus, 
+  Edit3, 
   Layers, 
-  UserCircle 
+  SlidersHorizontal 
 } from 'lucide-react'
 
-function DashboardPreview() {
+function ComponentShowcase() {
   const { theme, toggleTheme } = useTheme()
-  const { user, isAuthenticated, login, logout, isLoading } = useAuth()
+  const { user, isAuthenticated, login, logout } = useAuth()
   const { toast } = useToast()
 
-  const handleSimulateLogin = async () => {
-    await login({ email: 'alex.torvalds@devboard.io' })
-    toast.success('Sesión iniciada como alex.torvalds@devboard.io', 'AUTENTICACIÓN')
+  // Estados locales para interactividad pura del showcase
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isSubmittingSim, setIsSubmittingSim] = useState(false)
+  const [showErrors, setShowErrors] = useState(false)
+
+  const handleSimulateSubmit = () => {
+    setIsSubmittingSim(true)
+    setTimeout(() => {
+      setIsSubmittingSim(false)
+      toast.success('Petición completada con éxito', 'SIMULACIÓN API')
+    }, 1200)
   }
 
-  const handleLogout = () => {
-    logout()
-    toast.info('Sesión cerrada correctamente', 'SEGURIDAD')
+  const handleDeleteConfirm = () => {
+    setIsSubmittingSim(true)
+    setTimeout(() => {
+      setIsSubmittingSim(false)
+      setIsConfirmOpen(false)
+      toast.error('Columna y 4 tickets eliminados en cascada', 'BORRADO CASCADA')
+    }, 1000)
   }
 
   return (
-    <div className="min-h-screen bg-retro-bg text-retro-text p-6 md:p-12 transition-colors duration-200">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="min-h-screen bg-retro-bg text-retro-text transition-colors duration-200">
+      {/* Navbar Atómico */}
+      <Navbar
+        user={user}
+        isAuthenticated={isAuthenticated}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+        onLoginClick={() => login({ email: 'santiago.dev@devboard.io' })}
+        onLogout={logout}
+        currentBoardTitle="Sprint Alpha (Showcase)"
+      />
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* Header Bar */}
-        <header className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-retro-border">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded bg-retro-accent/15 text-retro-accent border border-retro-accent/30 shadow-retro-sm">
-              <Terminal className="w-6 h-6" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight">DevBoard</h1>
-              <p className="text-xs font-mono text-retro-muted">SYS.VER: 1.2.0 // RETRO-TECH SPA</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={toggleTheme}
-              className="flex items-center gap-2 px-3 py-1.5 rounded border border-retro-border bg-retro-card hover:border-retro-accent text-sm font-medium transition-all shadow-retro-sm"
-              aria-label="Alternar tema visual"
-            >
-              {theme === 'dark' ? (
-                <>
-                  <Sun className="w-4 h-4 text-retro-accent" />
-                  <span className="font-mono text-xs">MODO CLARO</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="w-4 h-4 text-retro-accent" />
-                  <span className="font-mono text-xs">MODO OSCURO</span>
-                </>
-              )}
-            </button>
-
-            {isAuthenticated ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-1.5 rounded border border-retro-danger/40 bg-retro-danger/10 text-retro-danger hover:bg-retro-danger/20 text-xs font-mono font-semibold transition-all shadow-retro-sm"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>SALIR</span>
-              </button>
-            ) : (
-              <button
-                onClick={handleSimulateLogin}
-                disabled={isLoading}
-                className="flex items-center gap-2 px-3 py-1.5 rounded border border-retro-accent/50 bg-retro-accent text-white hover:bg-retro-accent/90 text-xs font-mono font-semibold transition-all shadow-retro-sm disabled:opacity-50"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>{isLoading ? 'CONECTANDO...' : 'LOGIN DEMO'}</span>
-              </button>
-            )}
-          </div>
-        </header>
-
-        {/* Phase 2 Status Card */}
+        {/* Banner de Estado de Fase 3 */}
         <section className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro">
-          <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
+          <div className="flex items-start justify-between flex-wrap gap-4 mb-3">
             <div>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-retro-success/15 text-retro-success font-mono text-xs font-semibold border border-retro-success/30">
-                <CheckCircle2 className="w-3.5 h-3.5" /> FASE 2 COMPLETADA
+                <CheckCircle2 className="w-3.5 h-3.5" /> FASE 3 COMPLETADA
               </span>
-              <h2 className="text-xl font-bold mt-2">Contextos Globales y Custom Hooks</h2>
+              <h1 className="text-xl font-bold mt-2">Biblioteca de Componentes Presentacionales Atómicos</h1>
             </div>
-            <div className="text-right">
-              <span className="text-xs text-retro-muted block">ESTADO DE SESIÓN:</span>
-              <span className={`text-xs font-mono font-semibold px-2 py-0.5 rounded border inline-block mt-0.5 ${
-                isAuthenticated 
-                  ? 'bg-retro-success/15 text-retro-success border-retro-success/30' 
-                  : 'bg-retro-warning/15 text-retro-warning border-retro-warning/30'
-              }`}>
-                {isAuthenticated ? `AUTH // ${user.name}` : 'ANÓNIMO // PÚBLICO'}
-              </span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant={showErrors ? 'danger' : 'secondary'}
+                size="sm"
+                icon={SlidersHorizontal}
+                onClick={() => setShowErrors(!showErrors)}
+              >
+                {showErrors ? 'Ocultar Errores' : 'Simular Errores'}
+              </Button>
             </div>
           </div>
 
           <p className="text-sm text-retro-muted leading-relaxed">
-            Se implementaron los tres contextos arquitectónicos fundamentales: <strong>ThemeContext</strong> (gestión síncrona Light/Dark con persistencia), <strong>AuthContext</strong> (sesión desacoplada con tokens simulados o JWT) y <strong>ToastContext</strong> (cola de notificaciones reactivas indispensables para rollback de Optimistic UI).
+            Se generó la biblioteca de componentes atómicos puros (dummy) bajo la regla estricta: <strong>0 llamados a la API y 0 useEffect</strong>. Todos los componentes operan exclusivamente vía props y callbacks, implementando los tokens de <strong>Silicon Valley Retro-Tech</strong>.
           </p>
         </section>
 
-        {/* Interactive Verification Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Showcase Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Card 1: Theme Hook */}
-          <div className="bg-retro-card border border-retro-border p-5 rounded-lg shadow-retro-sm space-y-3">
-            <div className="flex items-center gap-2 text-retro-accent font-semibold text-sm">
-              <Sun className="w-4 h-4" />
-              <span>useTheme</span>
-            </div>
-            <p className="text-xs text-retro-muted">
-              Control reactivo del tema con soporte de media query de sistema operativo y almacenamiento en localStorage.
-            </p>
-            <div className="pt-2 flex items-center justify-between text-xs font-mono">
-              <span className="text-retro-muted">TEMA ACTUAL:</span>
-              <span className="font-bold text-retro-accent uppercase">{theme}</span>
+          {/* Panel 1: Controles y Formularios */}
+          <div className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro-sm space-y-5">
+            <h2 className="text-base font-bold text-retro-text flex items-center gap-2 border-b border-retro-border pb-3">
+              <Layers className="w-4 h-4 text-retro-accent" />
+              <span>Controles de Formulario (Input, Textarea, Select)</span>
+            </h2>
+
+            <div className="space-y-4">
+              <Input
+                label="Título del Ticket"
+                required
+                placeholder="Ej. Implementar autenticación JWT"
+                error={showErrors ? 'El título del ticket es obligatorio' : undefined}
+                helperText={!showErrors ? 'Máximo 150 caracteres' : undefined}
+                defaultValue="Refactorizar módulo de columnas"
+              />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Select
+                  label="Prioridad"
+                  options={[
+                    { value: 'low', label: 'Baja (Low)' },
+                    { value: 'medium', label: 'Media (Medium)' },
+                    { value: 'high', label: 'Alta (High)' },
+                  ]}
+                  defaultValue="high"
+                />
+
+                <Input
+                  label="Identificador Técnico"
+                  mono
+                  defaultValue="#TK-849F2A"
+                  readOnly
+                  helperText="Autocalculado con tipografía monoespaciada"
+                />
+              </div>
+
+              <Textarea
+                label="Descripción del Requerimiento"
+                placeholder="Detalla criterios de aceptación..."
+                rows={3}
+                error={showErrors ? 'La descripción excede los 2000 caracteres permitidos' : undefined}
+                defaultValue="Garantizar que al eliminar una columna se eliminen todos sus tickets hijos en cascada."
+              />
             </div>
           </div>
 
-          {/* Card 2: Auth Hook */}
-          <div className="bg-retro-card border border-retro-border p-5 rounded-lg shadow-retro-sm space-y-3">
-            <div className="flex items-center gap-2 text-retro-accent font-semibold text-sm">
-              <UserCircle className="w-4 h-4" />
-              <span>useAuth</span>
+          {/* Panel 2: Botones, Badges y Modales */}
+          <div className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro-sm space-y-5">
+            <h2 className="text-base font-bold text-retro-text flex items-center gap-2 border-b border-retro-border pb-3">
+              <SlidersHorizontal className="w-4 h-4 text-retro-accent" />
+              <span>Botones, Badges y Diálogos Modales</span>
+            </h2>
+
+            {/* Badges */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-retro-muted block">Variantes de Badge (Prioridades y Estados):</span>
+              <div className="flex flex-wrap gap-2">
+                <Badge variant="low">LOW PRIORITY</Badge>
+                <Badge variant="medium">MEDIUM PRIORITY</Badge>
+                <Badge variant="high">HIGH PRIORITY</Badge>
+                <Badge variant="accent">#TK-104</Badge>
+                <Badge variant="success">200 OK</Badge>
+                <Badge variant="danger">400 BAD REQUEST</Badge>
+              </div>
             </div>
-            <p className="text-xs text-retro-muted">
-              Gestión de sesión persistida lista para autenticación protegida en rutas `/boards` y `/boards/:boardId`.
-            </p>
-            <div className="pt-2 flex items-center justify-between text-xs font-mono">
-              <span className="text-retro-muted">TOKEN:</span>
-              <span className="truncate max-w-[140px] text-retro-muted">
-                {isAuthenticated ? 'TOKEN_ACTIVO' : 'NULL'}
-              </span>
+
+            {/* Botones */}
+            <div className="space-y-2 pt-2">
+              <span className="text-xs font-semibold text-retro-muted block">Variantes de Botón & Estados de Carga:</span>
+              <div className="flex flex-wrap gap-2.5 items-center">
+                <Button
+                  variant="primary"
+                  icon={Plus}
+                  isSubmitting={isSubmittingSim}
+                  onClick={handleSimulateSubmit}
+                >
+                  Guardar Cambios
+                </Button>
+                <Button
+                  variant="secondary"
+                  icon={Edit3}
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Abrir Modal
+                </Button>
+                <Button
+                  variant="danger"
+                  icon={Trash2}
+                  onClick={() => setIsConfirmOpen(true)}
+                >
+                  Eliminar Columna
+                </Button>
+              </div>
             </div>
+
+            {/* Spinners */}
+            <div className="pt-2 flex items-center gap-4 text-xs font-mono text-retro-muted">
+              <span>SPINNERS:</span>
+              <Spinner size="sm" />
+              <Spinner size="md" />
+              <Spinner size="lg" />
+            </div>
+
           </div>
 
-          {/* Card 3: Toast System */}
-          <div className="bg-retro-card border border-retro-border p-5 rounded-lg shadow-retro-sm space-y-3">
-            <div className="flex items-center gap-2 text-retro-accent font-semibold text-sm">
-              <Bell className="w-4 h-4" />
-              <span>useToast</span>
-            </div>
-            <p className="text-xs text-retro-muted">
-              Dispara alertas con autodespacho y estilos retro-tech para rollback optimista y confirmaciones.
-            </p>
-            <div className="pt-2 flex flex-wrap gap-1.5">
-              <button
-                onClick={() => toast.success('Ticket guardado correctamente')}
-                className="px-2 py-1 text-[10px] font-mono rounded bg-retro-success/10 text-retro-success border border-retro-success/30 hover:bg-retro-success/20"
-              >
-                Success
-              </button>
-              <button
-                onClick={() => toast.error('Error 400: Rollback activado')}
-                className="px-2 py-1 text-[10px] font-mono rounded bg-retro-danger/10 text-retro-danger border border-retro-danger/30 hover:bg-retro-danger/20"
-              >
-                Error
-              </button>
-              <button
-                onClick={() => toast.warning('Advertencia de borrado en cascada')}
-                className="px-2 py-1 text-[10px] font-mono rounded bg-retro-warning/10 text-retro-warning border border-retro-warning/30 hover:bg-retro-warning/20"
-              >
-                Warn
-              </button>
-              <button
-                onClick={() => toast.info('Sincronizando con backend...')}
-                className="px-2 py-1 text-[10px] font-mono rounded bg-retro-accent/10 text-retro-accent border border-retro-accent/30 hover:bg-retro-accent/20"
-              >
-                Info
-              </button>
-            </div>
-          </div>
         </div>
+
+        {/* Modal de Ejemplo */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Crear Nuevo Ticket"
+          subtitle="FORMULARIO DE DEMOSTRACIÓN"
+          maxWidth="md"
+          footer={
+            <>
+              <Button variant="secondary" size="sm" onClick={() => setIsModalOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isSubmitting={isSubmittingSim}
+                onClick={handleSimulateSubmit}
+              >
+                Crear Ticket
+              </Button>
+            </>
+          }
+        >
+          <div className="space-y-4">
+            <Input label="Título" placeholder="Ej. Actualizar dependencias" />
+            <Textarea label="Descripción" placeholder="Detalle técnico..." />
+          </div>
+        </Modal>
+
+        {/* Diálogo de Confirmación con Advertencia de Cascada */}
+        <ConfirmDialog
+          isOpen={isConfirmOpen}
+          onClose={() => setIsConfirmOpen(false)}
+          onConfirm={handleDeleteConfirm}
+          title="¿Eliminar la columna 'En Progreso'?"
+          message="Esta acción no se puede deshacer y retirará la columna de la interfaz."
+          cascadeWarning="Se eliminarán automáticamente los 4 tickets contenidos en esta columna mediante el hook de borrado en cascada."
+          confirmText="Sí, eliminar con cascada"
+          isSubmitting={isSubmittingSim}
+        />
 
         {/* Footer */}
         <footer className="text-center pt-6 text-xs font-mono text-retro-muted border-t border-retro-border">
-          Fase 2 finalizada con éxito. Listo para arrancar la Fase 3: Componentes Presentacionales Atómicos de UI (`src/components`).
+          Fase 3 finalizada con éxito. Listo para arrancar la Fase 4: Módulos de Dominio y Formularios Validados (`src/features`).
         </footer>
 
-      </div>
+      </main>
     </div>
   )
 }
@@ -198,7 +258,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
-          <DashboardPreview />
+          <ComponentShowcase />
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
