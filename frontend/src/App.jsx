@@ -2,52 +2,154 @@ import { useState } from 'react'
 import { ThemeProvider, useTheme } from './hooks/useTheme'
 import { AuthProvider, useAuth } from './hooks/useAuth'
 import { ToastProvider, useToast } from './hooks/useToast'
-import {
-  Navbar,
-  Button,
-  Badge,
-  Input,
-  Textarea,
-  Select,
-  Modal,
-  ConfirmDialog,
-  Spinner
-} from './components'
+import { Navbar, Button, ConfirmDialog } from './components'
+import { BoardCard, BoardFormModal } from './features/boards'
+import { ColumnContainer, ColumnFormModal } from './features/columns'
+import { TicketCard, TicketFormModal } from './features/tickets'
+import { mockBoards } from './api/mockData'
 import { 
   CheckCircle2, 
-  Trash2, 
   Plus, 
-  Edit3, 
-  Layers, 
-  SlidersHorizontal 
+  Layout, 
+  Kanban 
 } from 'lucide-react'
 
-function ComponentShowcase() {
+function FeatureShowcase() {
   const { theme, toggleTheme } = useTheme()
   const { user, isAuthenticated, login, logout } = useAuth()
   const { toast } = useToast()
 
-  // Estados locales para interactividad pura del showcase
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [isSubmittingSim, setIsSubmittingSim] = useState(false)
-  const [showErrors, setShowErrors] = useState(false)
+  // Tablero de demostración con datos sintéticos
+  const [boardData, setBoardData] = useState(() => structuredClone(mockBoards[0]))
+  
+  // Modales de formulario
+  const [isBoardModalOpen, setIsBoardModalOpen] = useState(false)
+  const [editingBoard, setEditingBoard] = useState(null)
 
-  const handleSimulateSubmit = () => {
-    setIsSubmittingSim(true)
+  const [isColModalOpen, setIsColModalOpen] = useState(false)
+  const [editingCol, setEditingCol] = useState(null)
+
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false)
+  const [editingTicket, setEditingTicket] = useState(null)
+  const [activeColId, setActiveColId] = useState(null)
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Acciones de Tablero
+  const handleSaveBoard = async (data) => {
+    setIsSubmitting(true)
     setTimeout(() => {
-      setIsSubmittingSim(false)
-      toast.success('Petición completada con éxito', 'SIMULACIÓN API')
-    }, 1200)
+      setBoardData(prev => ({ ...prev, ...data }))
+      setIsSubmitting(false)
+      setIsBoardModalOpen(false)
+      toast.success(editingBoard ? 'Tablero actualizado' : 'Tablero creado', 'SYS.BOARD')
+    }, 800)
   }
 
-  const handleDeleteConfirm = () => {
-    setIsSubmittingSim(true)
+  // Acciones de Columna
+  const handleSaveColumn = async (data) => {
+    setIsSubmitting(true)
     setTimeout(() => {
-      setIsSubmittingSim(false)
+      if (editingCol) {
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          const col = next.columns.find(c => c._id === editingCol._id)
+          if (col) col.title = data.title
+          return next
+        })
+        toast.success(`Columna renombrada a "${data.title}"`, 'SYS.COLUMN')
+      } else {
+        const newCol = {
+          _id: `67b60e22${Date.now().toString().slice(-16)}`,
+          title: data.title,
+          boardId: boardData._id,
+          order: boardData.columns.length,
+          tickets: [],
+        }
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          next.columns.push(newCol)
+          return next
+        })
+        toast.success(`Columna "${data.title}" agregada`, 'SYS.COLUMN')
+      }
+      setIsSubmitting(false)
+      setIsColModalOpen(false)
+    }, 700)
+  }
+
+  // Acciones de Ticket
+  const handleSaveTicket = async (data) => {
+    setIsSubmitting(true)
+    setTimeout(() => {
+      if (editingTicket) {
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          for (const col of next.columns) {
+            const t = col.tickets.find(item => item._id === editingTicket._id)
+            if (t) {
+              t.title = data.title
+              t.description = data.description
+              t.priority = data.priority
+              break
+            }
+          }
+          return next
+        })
+        toast.success(`Ticket "${data.title}" actualizado`, 'SYS.TICKET')
+      } else {
+        const newTicket = {
+          _id: `67b60e33${Date.now().toString().slice(-16)}`,
+          title: data.title,
+          description: data.description,
+          priority: data.priority,
+          columnId: activeColId,
+          order: 99,
+        }
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          const col = next.columns.find(c => c._id === activeColId)
+          if (col) col.tickets.push(newTicket)
+          return next
+        })
+        toast.success(`Ticket creado en columna`, 'SYS.TICKET')
+      }
+      setIsSubmitting(false)
+      setIsTicketModalOpen(false)
+    }, 700)
+  }
+
+  // Borrado con confirmación y advertencia en cascada
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return
+    setIsSubmitting(true)
+
+    setTimeout(() => {
+      if (itemToDelete.type === 'column') {
+        const colTicketsCount = itemToDelete.data.tickets?.length || 0
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          next.columns = next.columns.filter(c => c._id !== itemToDelete.data._id)
+          return next
+        })
+        toast.error(`Columna eliminada junto con sus ${colTicketsCount} tickets asociados`, 'BORRADO CASCADA')
+      } else if (itemToDelete.type === 'ticket') {
+        setBoardData(prev => {
+          const next = structuredClone(prev)
+          for (const col of next.columns) {
+            col.tickets = col.tickets.filter(t => t._id !== itemToDelete.data._id)
+          }
+          return next
+        })
+        toast.info('Ticket eliminado del tablero', 'SYS.TICKET')
+      }
+
+      setIsSubmitting(false)
       setIsConfirmOpen(false)
-      toast.error('Columna y 4 tickets eliminados en cascada', 'BORRADO CASCADA')
-    }, 1000)
+      setItemToDelete(null)
+    }, 600)
   }
 
   return (
@@ -60,192 +162,191 @@ function ComponentShowcase() {
         onToggleTheme={toggleTheme}
         onLoginClick={() => login({ email: 'santiago.dev@devboard.io' })}
         onLogout={logout}
-        currentBoardTitle="Sprint Alpha (Showcase)"
+        currentBoardTitle={boardData.title}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* Banner de Estado de Fase 3 */}
+        {/* Banner de Estado de Fase 4 */}
         <section className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro">
           <div className="flex items-start justify-between flex-wrap gap-4 mb-3">
             <div>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-retro-success/15 text-retro-success font-mono text-xs font-semibold border border-retro-success/30">
-                <CheckCircle2 className="w-3.5 h-3.5" /> FASE 3 COMPLETADA
+                <CheckCircle2 className="w-3.5 h-3.5" /> FASE 4 COMPLETADA
               </span>
-              <h1 className="text-xl font-bold mt-2">Biblioteca de Componentes Presentacionales Atómicos</h1>
+              <h1 className="text-xl font-bold mt-2">Módulos de Dominio y Formularios Validados (RHF + Zod)</h1>
             </div>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex items-center gap-2.5 flex-wrap">
               <Button
-                variant={showErrors ? 'danger' : 'secondary'}
+                variant="secondary"
                 size="sm"
-                icon={SlidersHorizontal}
-                onClick={() => setShowErrors(!showErrors)}
+                icon={Plus}
+                onClick={() => {
+                  setEditingCol(null)
+                  setIsColModalOpen(true)
+                }}
               >
-                {showErrors ? 'Ocultar Errores' : 'Simular Errores'}
+                Nueva Columna
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={Plus}
+                onClick={() => {
+                  setEditingBoard(null)
+                  setIsBoardModalOpen(true)
+                }}
+              >
+                Nuevo Tablero
               </Button>
             </div>
           </div>
 
           <p className="text-sm text-retro-muted leading-relaxed">
-            Se generó la biblioteca de componentes atómicos puros (dummy) bajo la regla estricta: <strong>0 llamados a la API y 0 useEffect</strong>. Todos los componentes operan exclusivamente vía props y callbacks, implementando los tokens de <strong>Silicon Valley Retro-Tech</strong>.
+            Se implementaron los módulos por dominio (<strong>boards</strong>, <strong>columns</strong>, <strong>tickets</strong>) con esquemas declarativos de validación <strong>Zod</strong>, tarjetas presentacionales desacopladas (<strong>0 useEffect</strong>) y modales controlados con <strong>React Hook Form</strong> para captura de errores y estados de carga.
           </p>
         </section>
 
-        {/* Showcase Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Panel 1: Controles y Formularios */}
-          <div className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro-sm space-y-5">
-            <h2 className="text-base font-bold text-retro-text flex items-center gap-2 border-b border-retro-border pb-3">
-              <Layers className="w-4 h-4 text-retro-accent" />
-              <span>Controles de Formulario (Input, Textarea, Select)</span>
+        {/* Sección 1: Tarjetas de Tablero (BoardCard) */}
+        <section className="space-y-3">
+          <div className="flex items-center gap-2 border-b border-retro-border pb-2">
+            <Layout className="w-4 h-4 text-retro-accent" />
+            <h2 className="text-sm font-bold tracking-tight text-retro-text uppercase font-mono">
+              [DOMINIO: BOARDS // BOARDCARD & MODAL]
             </h2>
-
-            <div className="space-y-4">
-              <Input
-                label="Título del Ticket"
-                required
-                placeholder="Ej. Implementar autenticación JWT"
-                error={showErrors ? 'El título del ticket es obligatorio' : undefined}
-                helperText={!showErrors ? 'Máximo 150 caracteres' : undefined}
-                defaultValue="Refactorizar módulo de columnas"
-              />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Select
-                  label="Prioridad"
-                  options={[
-                    { value: 'low', label: 'Baja (Low)' },
-                    { value: 'medium', label: 'Media (Medium)' },
-                    { value: 'high', label: 'Alta (High)' },
-                  ]}
-                  defaultValue="high"
-                />
-
-                <Input
-                  label="Identificador Técnico"
-                  mono
-                  defaultValue="#TK-849F2A"
-                  readOnly
-                  helperText="Autocalculado con tipografía monoespaciada"
-                />
-              </div>
-
-              <Textarea
-                label="Descripción del Requerimiento"
-                placeholder="Detalla criterios de aceptación..."
-                rows={3}
-                error={showErrors ? 'La descripción excede los 2000 caracteres permitidos' : undefined}
-                defaultValue="Garantizar que al eliminar una columna se eliminen todos sus tickets hijos en cascada."
-              />
-            </div>
           </div>
 
-          {/* Panel 2: Botones, Badges y Modales */}
-          <div className="bg-retro-card border border-retro-border rounded-lg p-6 shadow-retro-sm space-y-5">
-            <h2 className="text-base font-bold text-retro-text flex items-center gap-2 border-b border-retro-border pb-3">
-              <SlidersHorizontal className="w-4 h-4 text-retro-accent" />
-              <span>Botones, Badges y Diálogos Modales</span>
-            </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <BoardCard
+              board={boardData}
+              onOpen={(id) => toast.info(`Navegación al tablero ${id}`, 'ROUTER')}
+              onEdit={(b) => {
+                setEditingBoard(b)
+                setIsBoardModalOpen(true)
+              }}
+              onDelete={(b) => {
+                setItemToDelete({ type: 'board', data: b })
+                setIsConfirmOpen(true)
+              }}
+            />
+            <BoardCard
+              board={mockBoards[1]}
+              onOpen={(id) => toast.info(`Navegación al tablero ${id}`, 'ROUTER')}
+              onEdit={(b) => toast.info(`Editar ${b.title}`, 'SHOWCASE')}
+              onDelete={(b) => toast.warning('Eliminar tablero demo', 'SHOWCASE')}
+            />
+          </div>
+        </section>
 
-            {/* Badges */}
-            <div className="space-y-2">
-              <span className="text-xs font-semibold text-retro-muted block">Variantes de Badge (Prioridades y Estados):</span>
-              <div className="flex flex-wrap gap-2">
-                <Badge variant="low">LOW PRIORITY</Badge>
-                <Badge variant="medium">MEDIUM PRIORITY</Badge>
-                <Badge variant="high">HIGH PRIORITY</Badge>
-                <Badge variant="accent">#TK-104</Badge>
-                <Badge variant="success">200 OK</Badge>
-                <Badge variant="danger">400 BAD REQUEST</Badge>
-              </div>
+        {/* Sección 2: Tablero Kanban (ColumnContainer & TicketCard) */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between border-b border-retro-border pb-2">
+            <div className="flex items-center gap-2">
+              <Kanban className="w-4 h-4 text-retro-accent" />
+              <h2 className="text-sm font-bold tracking-tight text-retro-text uppercase font-mono">
+                [DOMINIO: KANBAN // COLUMNCONTAINER & TICKETCARD]
+              </h2>
             </div>
-
-            {/* Botones */}
-            <div className="space-y-2 pt-2">
-              <span className="text-xs font-semibold text-retro-muted block">Variantes de Botón & Estados de Carga:</span>
-              <div className="flex flex-wrap gap-2.5 items-center">
-                <Button
-                  variant="primary"
-                  icon={Plus}
-                  isSubmitting={isSubmittingSim}
-                  onClick={handleSimulateSubmit}
-                >
-                  Guardar Cambios
-                </Button>
-                <Button
-                  variant="secondary"
-                  icon={Edit3}
-                  onClick={() => setIsModalOpen(true)}
-                >
-                  Abrir Modal
-                </Button>
-                <Button
-                  variant="danger"
-                  icon={Trash2}
-                  onClick={() => setIsConfirmOpen(true)}
-                >
-                  Eliminar Columna
-                </Button>
-              </div>
-            </div>
-
-            {/* Spinners */}
-            <div className="pt-2 flex items-center gap-4 text-xs font-mono text-retro-muted">
-              <span>SPINNERS:</span>
-              <Spinner size="sm" />
-              <Spinner size="md" />
-              <Spinner size="lg" />
-            </div>
-
+            <span className="text-xs font-mono text-retro-muted">
+              {boardData.columns.length} COLUMNAS ACTIVAS
+            </span>
           </div>
 
-        </div>
-
-        {/* Modal de Ejemplo */}
-        <Modal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          title="Crear Nuevo Ticket"
-          subtitle="FORMULARIO DE DEMOSTRACIÓN"
-          maxWidth="md"
-          footer={
-            <>
-              <Button variant="secondary" size="sm" onClick={() => setIsModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                isSubmitting={isSubmittingSim}
-                onClick={handleSimulateSubmit}
+          {/* Kanban Board Horizontal Scroll */}
+          <div className="flex items-start gap-4 overflow-x-auto pb-4 pt-1">
+            {boardData.columns.map((col) => (
+              <ColumnContainer
+                key={col._id}
+                column={col}
+                onAddTicket={(colId) => {
+                  setActiveColId(colId)
+                  setEditingTicket(null)
+                  setIsTicketModalOpen(true)
+                }}
+                onEditColumn={(c) => {
+                  setEditingCol(c)
+                  setIsColModalOpen(true)
+                }}
+                onDeleteColumn={(c) => {
+                  setItemToDelete({ type: 'column', data: c })
+                  setIsConfirmOpen(true)
+                }}
               >
-                Crear Ticket
-              </Button>
-            </>
-          }
-        >
-          <div className="space-y-4">
-            <Input label="Título" placeholder="Ej. Actualizar dependencias" />
-            <Textarea label="Descripción" placeholder="Detalle técnico..." />
+                {col.tickets?.map((ticket) => (
+                  <TicketCard
+                    key={ticket._id}
+                    ticket={ticket}
+                    onEdit={(t) => {
+                      setEditingTicket(t)
+                      setActiveColId(col._id)
+                      setIsTicketModalOpen(true)
+                    }}
+                    onDelete={(t) => {
+                      setItemToDelete({ type: 'ticket', data: t })
+                      setIsConfirmOpen(true)
+                    }}
+                  />
+                ))}
+              </ColumnContainer>
+            ))}
           </div>
-        </Modal>
+        </section>
 
-        {/* Diálogo de Confirmación con Advertencia de Cascada */}
+        {/* Modales de Formulario */}
+        <BoardFormModal
+          isOpen={isBoardModalOpen}
+          onClose={() => setIsBoardModalOpen(false)}
+          onSubmit={handleSaveBoard}
+          initialData={editingBoard}
+          isSubmitting={isSubmitting}
+        />
+
+        <ColumnFormModal
+          isOpen={isColModalOpen}
+          onClose={() => setIsColModalOpen(false)}
+          onSubmit={handleSaveColumn}
+          initialData={editingCol}
+          isSubmitting={isSubmitting}
+        />
+
+        <TicketFormModal
+          isOpen={isTicketModalOpen}
+          onClose={() => setIsTicketModalOpen(false)}
+          onSubmit={handleSaveTicket}
+          initialData={editingTicket}
+          isSubmitting={isSubmitting}
+        />
+
+        {/* Diálogo de Confirmación para borrado destructivo */}
         <ConfirmDialog
           isOpen={isConfirmOpen}
-          onClose={() => setIsConfirmOpen(false)}
-          onConfirm={handleDeleteConfirm}
-          title="¿Eliminar la columna 'En Progreso'?"
-          message="Esta acción no se puede deshacer y retirará la columna de la interfaz."
-          cascadeWarning="Se eliminarán automáticamente los 4 tickets contenidos en esta columna mediante el hook de borrado en cascada."
-          confirmText="Sí, eliminar con cascada"
-          isSubmitting={isSubmittingSim}
+          onClose={() => {
+            setIsConfirmOpen(false)
+            setItemToDelete(null)
+          }}
+          onConfirm={handleConfirmDelete}
+          title={
+            itemToDelete?.type === 'column'
+              ? `¿Eliminar columna "${itemToDelete.data.title}"?`
+              : itemToDelete?.type === 'ticket'
+              ? `¿Eliminar ticket "${itemToDelete.data.title}"?`
+              : '¿Eliminar tablero?'
+          }
+          message="Esta acción no se puede deshacer y retirará el recurso de la base de datos."
+          cascadeWarning={
+            itemToDelete?.type === 'column'
+              ? `Se eliminarán en cascada ${itemToDelete.data.tickets?.length || 0} tickets asociados a esta columna.`
+              : itemToDelete?.type === 'board'
+              ? 'Se eliminarán en cascada todas las columnas y tickets de este tablero.'
+              : undefined
+          }
+          isSubmitting={isSubmitting}
         />
 
         {/* Footer */}
         <footer className="text-center pt-6 text-xs font-mono text-retro-muted border-t border-retro-border">
-          Fase 3 finalizada con éxito. Listo para arrancar la Fase 4: Módulos de Dominio y Formularios Validados (`src/features`).
+          Fase 4 finalizada con éxito. Listo para arrancar la Fase 5: Vistas Principales, Enrutamiento SPA y Optimistic UI (`src/pages` / `src/routes`).
         </footer>
 
       </main>
@@ -258,7 +359,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <ToastProvider>
-          <ComponentShowcase />
+          <FeatureShowcase />
         </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
