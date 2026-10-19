@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Silicon Valley Retro-Tech Design System
+   Paleta Semántica: Solarized Warm Light & Retro Petroleum Dark
+   ========================================================================== */
+
+:root {
+  --bg-primary: #FDF6E3;
+  --bg-card: #EEE8D5;
+  --text-primary: #073642;
+  --text-muted: #586E75;
+  --accent-color: #CB4B16;
+  --accent-hover: #A33A0E;
+  --border-color: #D3CBB7;
+  --danger-color: #DC322F;
+  --warning-color: #B58900;
+  --success-color: #859900;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
+
+html.dark,
+body.dark {
+  --bg-primary: #002B36;
+  --bg-card: #073642;
+  --text-primary: #839496;
+  --text-muted: #93A1A1;
+  --accent-color: #2AA198;
+  --accent-hover: #22847D;
+  --border-color: #0E4856;
+  --danger-color: #DC322F;
+  --warning-color: #B58900;
+  --success-color: #859900;
+}
+
+/* Global Base Styles */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Monospace Helpers */
+code,
+pre,
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Custom Retro Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
