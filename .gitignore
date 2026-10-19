@@ -1,9 +1,43 @@
+# ==========================================
+# 1. Dependencias y Compilación
+# ==========================================
 node_modules/
+dist/
+dist-ssr/
+
+# ==========================================
+# 2. Variables de Entorno y Secretos
+# ==========================================
 .env
+.env.*
 .env.local
+!.env.example
+
+# ==========================================
+# 3. Logs y Depuración
+# ==========================================
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================================
+# 4. Pruebas y Cobertura
+# ==========================================
 coverage/
-.vscode/
+
+# ==========================================
+# 5. Sistema Operativo y Editores
+# ==========================================
+.DS_Store
+Thumbs.db
 .idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
