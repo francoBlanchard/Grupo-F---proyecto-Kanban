@@ -29,7 +29,16 @@ const createBoard = async (req, res, next) => {
  */
 const getAllBoards = async (req, res, next) => {
   try {
-    const boards = await Board.find().sort({ createdAt: -1 });
+    const boards = await Board.find()
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'columns',
+        options: { sort: { order: 1 } },
+        populate: {
+          path: 'tickets',
+          options: { sort: { order: 1 } }
+        }
+      });
     return res.status(200).json(boards);
   } catch (error) {
     next(error);
